@@ -73,6 +73,50 @@ em { font-family: var(--f-serif); font-style: italic; font-weight: 400; letter-s
 }
 
 main { position: relative; z-index: 2; }
+
+/* ---------- costura entre as seções ----------
+   As camadas de fundo locais (janela do portfólio, atmosfera dos projetos,
+   amanhecer do CTA) cobriam exatamente a altura da própria seção e por isso
+   terminavam em linha reta contra o céu fixo. O mask vertical dissolve essas
+   bordas: mesmas cores, mesmas imagens, sem corte.
+   --seam: quanto da altura a rampa consome em cada ponta.
+   --edge: a rampa precisa chegar a zero ANTES da borda da camada, porque as
+           imagens sangram para fora da seção (inset negativo) e o recorte da
+           seção cortaria a rampa ainda opaca — devolvendo o fio. */
+.work__window-img,
+.project__atmos,
+.project::after,
+.cta__dawn,
+.tech__beam {
+  --seam: 15%;
+  --edge: 6%;
+  --seam-fade: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) var(--edge),
+      rgba(0, 0, 0, .22) calc(var(--edge) + (var(--seam) - var(--edge)) * .36),
+      rgba(0, 0, 0, .68) calc(var(--edge) + (var(--seam) - var(--edge)) * .7),
+      #000 var(--seam),
+      #000 calc(100% - var(--seam)),
+      rgba(0, 0, 0, .68) calc(100% - var(--edge) - (var(--seam) - var(--edge)) * .7),
+      rgba(0, 0, 0, .22) calc(100% - var(--edge) - (var(--seam) - var(--edge)) * .36),
+      rgba(0, 0, 0, 0) calc(100% - var(--edge)));
+  -webkit-mask-image: var(--seam-fade);
+          mask-image: var(--seam-fade);
+}
+/* cada camada dissolve na medida do contraste que precisa vencer */
+.work__window-img { --seam: 22%; }  /* estratosfera clara → céu escuro */
+.cta__dawn        { --seam: 26%; }  /* amanhecer → o mesmo céu, outro corte */
+.project__atmos   { --seam: 14%; }  /* atmosfera do projeto → espaço */
+.project::after   { --seam: 14%; }  /* banho de cor do projeto → espaço */
+.tech__beam       { --seam: 20%; }  /* o facho nasce a 30% da seção: sem isso o
+                                        overflow da seção corta o brilho */
+
+/* nuvens do hero: só a base precisa dissolver (o topo já é o próprio céu) */
+.hero__clouds {
+  --hero-fade: linear-gradient(to bottom, #000 84%, rgba(0, 0, 0, .55) 93%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: var(--hero-fade);
+          mask-image: var(--hero-fade);
+}
+
 .s { position: relative; padding-inline: var(--gutter); }
 [data-theme="dark"] { color: #eef1ff; }
 
@@ -250,6 +294,21 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 .project { position: absolute; inset: 0; display: grid; grid-template-columns: 1.35fr 1fr; align-items: center; gap: clamp(2rem, 5vw, 6rem); padding: 100px var(--gutter) 60px; }
 .project__atmos { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .5; }
 .project__atmos::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,6,42,.55), rgba(5,6,42,.85) 70%); }
+/* O fundo assume a cor do projeto: boxe vermelho, obra dourada, frio azul.
+   Fica em .project::after, e não dentro de .project__atmos, porque a atmosfera
+   é limitada a 50% de opacidade — de lá o banho não cobriria o azul do céu fixo.
+   z-index 0 o deixa acima da foto e abaixo do print e do texto.
+   A opacidade vem de --wash, animada junto com a atmosfera em main.js. */
+.project::after {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  opacity: var(--wash, 1);
+  background: linear-gradient(90deg, rgba(6,4,24,.66), rgba(6,4,24,.92) 72%);   /* reserva, se color-mix faltar */
+  background:
+    radial-gradient(ellipse 78% 68% at 30% 46%, color-mix(in oklab, var(--tone) 46%, transparent), transparent 72%),
+    linear-gradient(90deg,
+      color-mix(in oklab, var(--tone) 20%, rgba(6,4,24,.66)),
+      color-mix(in oklab, var(--tone) 7%, rgba(6,4,24,.92)) 72%);
+}
 .project__visual { position: relative; z-index: 1; aspect-ratio: 16 / 10; will-change: transform; }
 .frame { position: absolute; margin: 0; border-radius: 14px; overflow: hidden; background: #0b0d2c; box-shadow: 0 40px 80px -40px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.1); }
 .frame img { width: 100%; height: auto; }

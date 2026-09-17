@@ -291,6 +291,7 @@ mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
     const t0 = i * 1;
     stage.set(p, { autoAlpha: 1 }, t0)
       .fromTo(atmos, { opacity: 0, scale: 1.25 }, { opacity: 0.5, scale: 1, duration: 0.45 }, t0)
+      .fromTo(p, { '--wash': 0 }, { '--wash': 1, duration: 0.45 }, t0)
       .fromTo(vis, { scale: 0.34, opacity: i === 0 ? 0.6 : 0, yPercent: 12, rotateY: -18, transformPerspective: 1400, filter: i === 0 ? 'blur(3px)' : 'blur(14px)' }, { scale: 1, opacity: 1, yPercent: 0, rotateY: 0, filter: 'blur(0px)', duration: 0.45 }, t0)
       .fromTo(back, { x: -80, y: 40, opacity: 0 }, { x: 0, y: 0, opacity: 0.55, duration: 0.35 }, t0 + 0.25)
       .fromTo(info, { opacity: 0, x: 60 }, { opacity: 1, x: 0, stagger: 0.03, duration: 0.3 }, t0 + 0.2)
@@ -299,6 +300,7 @@ mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
       stage.to(vis, { scale: 1.45, opacity: 0, yPercent: -6, filter: 'blur(12px)', duration: 0.3, ease: 'power2.in' }, t0 + 0.78)
         .to(info, { opacity: 0, x: -50, stagger: 0.015, duration: 0.2, ease: 'power2.in' }, t0 + 0.75)
         .to(atmos, { opacity: 0, duration: 0.3, ease: 'none' }, t0 + 0.8)
+        .to(p, { '--wash': 0, duration: 0.3, ease: 'none' }, t0 + 0.8)
         .set(p, { autoAlpha: 0 }, t0 + 1.08);
     } else {
       stage.to({}, { duration: 0.35 }, t0 + 0.75);
