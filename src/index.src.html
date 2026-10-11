@@ -18,10 +18,19 @@
   <link rel="preload" as="image" href="assets/img/sky-hero-m.webp" media="(max-width: 767px)">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="is-loading">
+<body class="is-booting">
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="duck" viewBox="0 0 100 100"><path fill-rule="evenodd" d="{{DUCK}}"/></symbol>
+  <!-- Identidade oficial. Os SVGs de assets/brand/ entram aqui como símbolos para
+       herdarem a cor do contexto (céu claro / espaço escuro) e poderem ser animados;
+       a geometria é exatamente a entregue. src/build.py mantém a sincronia. -->
+  <symbol id="mark" viewBox="0 0 182 176"><path pathLength="1" d="{{MARK}}"/></symbol>
+  <symbol id="wordmark" viewBox="0 0 1346 194">{{WORDMARK}}</symbol>
+  <!-- lockup oficial = marca (y+8,44) + nome (x+226,575), as medidas do arquivo entregue -->
+  <symbol id="logo" viewBox="0 0 1573 194">
+    <use href="#mark" x="0" y="8.44" width="182" height="176"/>
+    <use href="#wordmark" x="226.575" y="0" width="1346" height="194"/>
+  </symbol>
 </svg>
 
 <a class="skip" href="#estudio">Pular para o conteúdo</a>
@@ -36,12 +45,6 @@
 <canvas id="gl" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 
-<!-- ============ PRELOADER ============ -->
-<div class="loader" aria-hidden="true">
-  <svg class="loader__mark" viewBox="0 0 100 100"><use href="#duck"/></svg>
-  <span class="loader__count mono">000</span>
-</div>
-
 <!-- ============ LOGO-GUIA (fio condutor) ============ -->
 <button class="guide" id="guide" type="button" aria-expanded="false" aria-controls="nav" aria-label="DuckStudio — abrir navegação">
   <span class="guide__mark">
@@ -50,10 +53,10 @@
       <circle class="guide__progress" cx="32" cy="32" r="30" pathLength="1"/>
       <g class="guide__ticks"></g>
     </svg>
-    <span class="guide__disc"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#duck"/></svg></span>
+    <span class="guide__disc"><svg viewBox="0 0 182 176" aria-hidden="true"><use href="#mark"/></svg></span>
   </span>
   <span class="guide__text">
-    <span class="guide__name">DuckStudio</span>
+    <svg class="guide__name" viewBox="0 0 1346 194" aria-hidden="true"><use href="#wordmark"/></svg>
     <span class="guide__where mono"><span class="guide__num">01</span><span class="guide__sep">/08</span> <span class="guide__label">Início</span><span class="guide__extra"></span></span>
   </span>
 </button>
@@ -366,8 +369,7 @@
 
     <div class="foot">
       <div class="foot__brand">
-        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#duck"/></svg>
-        <span>DuckStudio</span>
+        <svg class="foot__logo" viewBox="0 0 1573 194" role="img" aria-label="DuckStudio"><use href="#logo"/></svg>
       </div>
       <p class="mono">© <span id="year">2025</span> DuckStudio — Todos os direitos reservados</p>
       <p class="mono">Feito com <span aria-label="amor">♥</span> no Brasil</p>

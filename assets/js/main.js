@@ -239,13 +239,15 @@ mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
   const track = $('.process__track');
   const dist = () => track.offsetWidth - innerWidth;
   const hTween = gsap.to(track, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '.process__pin', start: 'top top', end: () => '+=' + dist() * 1.05, pin: true, scrub: 1, invalidateOnRefresh: true } });
-  gsap.to('.process__path path', { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.process__pin', start: 'top top', end: () => '+=' + dist() * 1.05, scrub: 1, invalidateOnRefresh: true } });
+  // autoRound:false é obrigatório aqui: com pathLength="1" o traço inteiro mede 1px
+  // e o arredondamento padrão do GSAP transformaria o desenho num liga/desliga.
+  gsap.to('.process__path path', { strokeDashoffset: 0, ease: 'none', autoRound: false, scrollTrigger: { trigger: '.process__pin', start: 'top top', end: () => '+=' + dist() * 1.05, scrub: 1, invalidateOnRefresh: true } });
   gsap.to('.process__head', { opacity: 0, x: -80, filter: 'blur(8px)', ease: 'none', scrollTrigger: { trigger: '.process__pin', start: 'top top', end: () => '+=' + innerWidth * 0.5, scrub: 1 } });
   gsap.from('.process__head > *', { opacity: 0, filter: 'blur(14px)', y: 30, stagger: 0.1, duration: 1.6, ease: 'power3.out', scrollTrigger: { trigger: '#processo', start: 'top 60%' } });
   const stepST = (el) => ({ trigger: el, containerAnimation: hTween, start: 'left 88%', end: 'left 48%', scrub: 1 });
   $$('.step').forEach((step) => {
     const body = $('.step__body', step), n = $('.step__n', step);
-    gsap.fromTo(n, { x: 120 }, { x: -40, ease: 'none', scrollTrigger: { trigger: step, containerAnimation: hTween, start: 'left right', end: 'right left', scrub: true } });
+    gsap.fromTo(n, { x: 0 }, { x: -52, ease: 'none', scrollTrigger: { trigger: step, containerAnimation: hTween, start: 'left right', end: 'left 48%', scrub: true } });
     switch (step.dataset.fx) {
       case 'blur':
         gsap.fromTo(step, { filter: 'blur(22px)', opacity: 0, scale: 1.08 }, { filter: 'blur(0px)', opacity: 1, scale: 1, ease: 'none', scrollTrigger: stepST(step) });
@@ -433,7 +435,7 @@ function buildTracking() {
 }
 ScrollTrigger.create({
   start: 0, end: 'max',
-  onUpdate: (self) => { gsap.set('.guide__progress', { strokeDashoffset: 1 - self.progress }); updatePose(); },
+  onUpdate: (self) => { gsap.set('.guide__progress', { strokeDashoffset: 1 - self.progress, autoRound: false }); updatePose(); },
 });
 ScrollTrigger.addEventListener('refresh', () => {
   const max = ScrollTrigger.maxScroll(window) || 1;
@@ -450,7 +452,7 @@ addEventListener('resize', () => {
 });
 
 /* =================================================================
-   CONTADORES, ANO, FORMULÁRIO (Formspree preservado)
+   CONTADORES, ANO, FORMULÁRIO (entrega direta no e-mail da empresa)
    ================================================================= */
 $$('.about__n[data-count]').forEach((el) => {
   const end = +el.dataset.count;
@@ -460,7 +462,9 @@ $$('.about__n[data-count]').forEach((el) => {
 });
 const yearEl = $('#year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-const FORMSPREE_ID = 'mdajkldg'; // mesmo ID do site anterior
+// O destino fica aqui, no próprio site: o FormSubmit entrega direto nesta caixa,
+// sem painel nem conta intermediária. Para trocar o e-mail, basta mudar a linha.
+const CONTACT_EMAIL = 'duckstudio@duckkstudio.shop';
 const form = $('#contactForm');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -475,16 +479,26 @@ form.addEventListener('submit', async (e) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.className = 'cf-status mono error'; status.textContent = 'Informe um endereço de e-mail válido.'; return; }
   btn.disabled = true; btn.textContent = 'Enviando…'; status.className = 'cf-status mono'; status.textContent = '';
   try {
-    const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: name, email, projeto: subject || '(não informado)', mensagem: message, _subject: `Novo contato via DuckStudio — ${name}` }),
+      body: JSON.stringify({
+        nome: name, email, projeto: subject || '(não informado)', mensagem: message,
+        _subject: `Novo contato via DuckStudio — ${name}`,
+        _replyto: email,     // responder no e-mail já vai para o visitante
+        _captcha: 'false',   // sem tela de captcha no envio por AJAX
+      }),
     });
-    if (!res.ok) throw new Error('falha');
+    // Atenção: este serviço devolve HTTP 200 mesmo quando recusa o envio.
+    // Quem diz a verdade é o campo "success" do corpo — e ele vem como string.
+    const data = await res.json().catch(() => ({}));
+    if (data.success !== 'true') throw new Error(data.message || 'falha');
     status.className = 'cf-status mono success';
     status.textContent = 'Mensagem enviada! Retornaremos em até 24h.';
     form.reset();
   } catch (err) {
+    // o motivo real (ex.: formulário ainda não ativado) fica no console, não na tela
+    console.warn('[contato] envio falhou:', err.message);
     status.className = 'cf-status mono error';
     status.textContent = 'Não foi possível enviar agora. Tente novamente ou fale pelo WhatsApp.';
   }
@@ -492,9 +506,9 @@ form.addEventListener('submit', async (e) => {
 });
 
 /* =================================================================
-   BOOT — preloader discreto, depois a entrada
+   BOOT — sem tela de carregamento: o céu já está em cena e o conteúdo entra
+   assim que as fontes e a imagem do hero estão prontas (a entrada mede o texto)
    ================================================================= */
-const counter = $('.loader__count');
 const heroImg = new Image();
 heroImg.src = isMobile() ? 'assets/img/sky-hero-m.webp' : 'assets/img/sky-hero.webp';
 const ready = Promise.all([
@@ -502,16 +516,12 @@ const ready = Promise.all([
   document.fonts ? document.fonts.ready.catch(() => {}) : Promise.resolve(),
   scenePromise,
 ]);
-const minTime = new Promise((r) => setTimeout(r, reduced ? 0 : 1500));
-const cnt = { v: 0 };
-if (!reduced) gsap.to(cnt, { v: 92, duration: 1.4, ease: 'power2.out', onUpdate: () => { counter.textContent = String(Math.round(cnt.v)).padStart(3, '0'); } });
-Promise.race([Promise.all([ready, minTime]), new Promise((r) => setTimeout(r, 4500))]).then(() => {
-  counter.textContent = '100';
+Promise.race([ready, new Promise((r) => setTimeout(r, 2500))]).then(() => {
   buildPoseTriggers();
   buildTracking();
   ScrollTrigger.refresh();
   gsap.set(guide, guideTarget('center'));
-  document.body.classList.remove('is-loading');
+  document.body.classList.remove('is-booting');
   setSection(0);
   updatePose();
   intro();

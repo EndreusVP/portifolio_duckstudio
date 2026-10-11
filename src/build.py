@@ -1,16 +1,33 @@
-"""Gera index.html e favicon.svg a partir de src/index.src.html + assets/js/duck-shape.js."""
+"""Gera index.html e favicon.svg a partir de src/index.src.html + assets/brand/*.svg.
+
+Os SVGs de assets/brand/ são a fonte única da identidade: daqui saem os símbolos
+inlinados na página e o favicon. Só o atributo `d` é aproveitado — o `fill` fixo
+dos arquivos é descartado de propósito, para a marca herdar a cor do contexto
+(céu claro / espaço escuro) via currentColor.
+"""
 import re, pathlib
+
 root = pathlib.Path(__file__).resolve().parent.parent
-js = (root / 'assets/js/duck-shape.js').read_text()
-def arr(name):
-    nums = [float(v) for v in re.search(name + r' = \[([^\]]+)\]', js).group(1).split(',')]
-    return list(zip(nums[0::2], nums[1::2]))
-def path(pts):
-    return 'M' + 'L'.join(f'{(x + .5) * 100:.1f} {(-y + .5) * 100:.1f}' for x, y in pts) + 'Z'
-d = path(arr('DUCK_OUTER')) + path(arr('DUCK_HOLE'))
-src = (root / 'src/index.src.html').read_text()
-(root / 'index.html').write_text(src.replace('{{DUCK}}', d))
+
+def paths(name):
+    """Todos os 'd' do SVG oficial, na ordem em que aparecem."""
+    svg = (root / 'assets/brand' / name).read_text(encoding='utf-8')
+    return re.findall(r'<path[^>]*\bd="([^"]+)"', svg)
+
+mark = paths('avatar.svg')[0]
+wordmark = ''.join('<path d="%s"/>' % d for d in paths('nome.svg'))
+
+src = (root / 'src/index.src.html').read_text(encoding='utf-8')
+(root / 'index.html').write_text(
+    src.replace('{{MARK}}', mark).replace('{{WORDMARK}}', wordmark),
+    encoding='utf-8', newline='\n')
+
+# favicon: monograma branco centrado no disco azul da marca (56% de 100×100)
+k = 56 / 182
 (root / 'assets/favicon.svg').write_text(
-    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='#0f00d7'/>"
-    f"<path fill='white' fill-rule='evenodd' transform='translate(18 20) scale(.64)' d='{d}'/></svg>")
-print('ok', len(d))
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
+    "<rect width='100' height='100' rx='50' fill='#0f00d7'/>"
+    "<path fill='white' transform='translate(22 22.92) scale(%.4f)' d='%s'/></svg>" % (k, mark),
+    encoding='utf-8', newline='\n')
+
+print('ok', len(mark), len(wordmark))

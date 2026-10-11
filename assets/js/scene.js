@@ -73,6 +73,7 @@ export function initScene() {
   const key = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(3, 6, 8); scene.add(key);
 
   /* ---------- blockout + structure + form: pato extrudado ---------- */
+  const DUCK_SCALE = 3.1;   // vale para a malha E para a nuvem de pontos: os dois têm de casar
   const toVec = (arr) => { const v = []; for (let i = 0; i < arr.length; i += 2) v.push(new THREE.Vector2(arr[i], arr[i + 1])); return v; };
   const shape = new THREE.Shape(toVec(DUCK_OUTER));
   shape.holes.push(new THREE.Path(toVec(DUCK_HOLE)));
@@ -92,7 +93,7 @@ export function initScene() {
   });
   const duckGroup = new THREE.Group();
   const duck = new THREE.Mesh(duckGeo, duckMat);
-  duck.scale.setScalar(3.1);
+  duck.scale.setScalar(DUCK_SCALE);
   duckGroup.add(duck);
   scene.add(duckGroup);
 
@@ -117,7 +118,7 @@ export function initScene() {
     while (lo < hi) { const mid = (lo + hi) >> 1; if (areas[mid] < r) lo = mid + 1; else hi = mid; }
     getTri(lo);
     let u = rnd(), v = rnd(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
-    const p = new THREE.Vector3().copy(a).addScaledVector(new THREE.Vector3().subVectors(b, a), u).addScaledVector(new THREE.Vector3().subVectors(c, a), v).multiplyScalar(3.1);
+    const p = new THREE.Vector3().copy(a).addScaledVector(new THREE.Vector3().subVectors(b, a), u).addScaledVector(new THREE.Vector3().subVectors(c, a), v).multiplyScalar(DUCK_SCALE);
     shapePos.set([p.x, p.y, p.z], i * 3);
     const th = rnd() * Math.PI * 2, ph = Math.acos(2 * rnd() - 1), rad = 3 + rnd() * 7;
     scatter.set([Math.sin(ph) * Math.cos(th) * rad * 1.6, Math.cos(ph) * rad * 0.8, Math.sin(ph) * Math.sin(th) * rad - 2], i * 3);

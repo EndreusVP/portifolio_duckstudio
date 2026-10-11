@@ -120,16 +120,14 @@ main { position: relative; z-index: 2; }
 .s { position: relative; padding-inline: var(--gutter); }
 [data-theme="dark"] { color: #eef1ff; }
 
-/* ---------- preloader ---------- */
-.loader {
-  position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; background: var(--air);
-  transition: opacity .9s var(--ease), visibility .9s;
-}
-.loader__mark { width: 96px; height: 96px; fill: transparent; stroke: var(--duck); stroke-width: 1.2; stroke-dasharray: 720; stroke-dashoffset: 720; animation: draw 1.6s var(--ease) forwards, fillin .6s 1.2s forwards; }
-.loader__count { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); color: var(--ink-soft); }
-@keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes fillin { to { fill: var(--duck); } }
-body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
+/* ---------- entrada ----------
+   Não há tela de carregamento: o céu aparece de imediato. Só o conteúdo espera
+   as fontes (a animação de entrada mede as linhas do título) para não entrar
+   com as medidas erradas nem piscar. O estado sai assim que tudo está pronto. */
+body.is-booting main,
+body.is-booting #gl,
+body.is-booting .guide,
+body.is-booting .top-cta { opacity: 0; }
 
 /* ---------- logo-guia ---------- */
 .guide {
@@ -152,10 +150,10 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
   box-shadow: 0 10px 30px -12px rgba(15, 0, 215, .55), inset 0 0 0 1px rgba(255,255,255,.18);
   transition: transform .5s var(--ease), background .5s;
 }
-.guide__disc svg { width: 58%; height: 58%; fill: #fff; transform: translate(4%, 2%); }
+.guide__disc svg { width: 52%; height: 52%; fill: #fff; }
 .guide:hover .guide__disc { transform: scale(1.06) rotate(-6deg); }
 .guide__text { display: flex; flex-direction: column; line-height: 1.1; }
-.guide__name { font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em; font-variation-settings: "wdth" 85; }
+.guide__name { --h: .95rem; display: block; align-self: start; height: var(--h); width: calc(var(--h) * 1346 / 194); fill: currentColor; }
 .guide__where { margin-top: 5px; opacity: .72; white-space: nowrap; }
 .guide__sep { opacity: .45; }
 .guide__label { display: inline-block; }
@@ -403,8 +401,8 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 
 .foot { max-width: 1400px; margin: 16vh auto 0; padding: 2rem 0 calc(2rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line-light); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; color: var(--ink-soft); }
 .foot p { margin: 0; }
-.foot__brand { display: flex; align-items: center; gap: .6rem; color: var(--ink); font-weight: 700; }
-.foot__brand svg { width: 28px; height: 28px; fill: var(--duck); }
+.foot__brand { display: flex; align-items: center; }
+.foot__logo { --h: 22px; display: block; height: var(--h); width: calc(var(--h) * 1573 / 194); fill: var(--duck); }
 .foot__top { text-decoration: none; }
 .foot__top:hover { color: var(--duck); }
 
@@ -425,7 +423,7 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
   body { font-size: 16px; }
   .guide__mark { width: 44px; height: 44px; }
   .guide__ring { inset: -6px; width: 56px; height: 56px; }
-  .guide__name { font-size: .95rem; }
+  .guide__name { --h: .82rem; }
   .top-cta { top: 16px; padding: .6rem .9rem; font-size: .8rem; }
   .top-cta span { display: none; }
   .top-cta::before { content: "Contato"; }
@@ -486,7 +484,6 @@ body:not(.is-loading) .loader { opacity: 0; visibility: hidden; }
 /* ---------- movimento reduzido ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
-  .loader { display: none; }
   .work__window { clip-path: none; }
   .cta__reveal { clip-path: none; }
   .process__pin { height: auto; overflow: visible; padding: 16vh var(--gutter) 10vh; }
